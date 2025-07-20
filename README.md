@@ -44,4 +44,25 @@ Ready to dive in? Here's where to start:
   app/page.tsx
   ```
 
-  ---
+---
+## 🚀 Deploy
+
+Deploy your own version effortlessly with [Vercel](https://vercel.com):
+
+- Push your code to GitHub  
+- Import the repo in Vercel dashboard  
+- Follow the simple steps in [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying)  
+
+And voilà — your app is live!
+
+---
+
+## ⭐ Show Some Love
+
+If this project helped you out or inspired you, please:
+
+- 🌟 **Star this repo**  
+- 💬 Share it with friends or colleagues  
+- 🙏 Drop a shoutout on social media  
+
+Your support keeps open source alive and thriving!
