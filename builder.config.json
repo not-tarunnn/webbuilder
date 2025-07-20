@@ -44,6 +44,5 @@
     "printenv *",
     "sleep *",
     "netlify *"
-  ],
-  "command": "npm run dev"
+  ]
 }
