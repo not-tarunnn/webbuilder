@@ -33,7 +33,7 @@ npm run dev
 # or
 yarn dev
 ```
-
+---
 
 ## 🧑‍💻 For Developers
 
@@ -44,4 +44,4 @@ Ready to dive in? Here's where to start:
   app/page.tsx
   ```
 
-  
+  ---
