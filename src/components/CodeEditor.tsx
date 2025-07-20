@@ -1,9 +1,15 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import Editor from "@monaco-editor/react";
+import React, { useState, useRef, useEffect } from "react";
 
-interface LivePreviewProps {
+interface CodeEditorProps {
   htmlCode: string;
+  setHtmlCode: (code: string) => void;
+  cssCode: string;
+  setCssCode: (code: string) => void;
+  jsCode: string;
+  setJsCode: (code: string) => void;
   isDarkMode?: boolean;
   windowState?: {
     isMinimized: boolean;
@@ -18,8 +24,13 @@ interface LivePreviewProps {
   onRestore?: () => void;
 }
 
-const LivePreview: React.FC<LivePreviewProps> = ({ 
-  htmlCode, 
+const CodeEditor: React.FC<CodeEditorProps> = ({
+  htmlCode,
+  setHtmlCode,
+  cssCode,
+  setCssCode,
+  jsCode,
+  setJsCode,
   isDarkMode = false,
   windowState = { isMinimized: false, isDragging: false, isDetached: false, position: { x: 0, y: 0 } },
   onMinimize,
@@ -28,22 +39,29 @@ const LivePreview: React.FC<LivePreviewProps> = ({
   onDetach,
   onRestore
 }) => {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [activeTab, setActiveTab] = useState<"html" | "css" | "js">("html");
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (iframe && !windowState.isMinimized) {
-      const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (doc) {
-        doc.open();
-        doc.write(htmlCode);
-        doc.close();
-      }
-    }
-  }, [htmlCode, windowState.isMinimized]);
+  const getCurrentCode = () => {
+    if (activeTab === "html") return htmlCode;
+    if (activeTab === "css") return cssCode;
+    return jsCode;
+  };
+
+  const handleChange = (value: string | undefined) => {
+    const val = value || "";
+    if (activeTab === "html") setHtmlCode(val);
+    else if (activeTab === "css") setCssCode(val);
+    else setJsCode(val);
+  };
+
+  const getLanguage = () => {
+    if (activeTab === "html") return "html";
+    if (activeTab === "css") return "css";
+    return "javascript";
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (windowState.isDetached) {
@@ -93,7 +111,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({
     ${windowState.isMinimized ? 'h-12' : 'h-full'} 
     ${isDarkMode ? 'bg-gray-800' : 'bg-white'} 
     border rounded-lg overflow-hidden transition-all duration-300 ease-in-out
-    ${windowState.isDetached ? 'w-96 h-64' : 'w-full'}
+    ${windowState.isDetached ? 'w-96 h-80' : 'w-full'}
   `;
 
   return (
@@ -142,7 +160,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({
           </div>
           
           <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-            Live Preview
+            Code Editor
           </span>
         </div>
         
@@ -150,31 +168,73 @@ const LivePreview: React.FC<LivePreviewProps> = ({
           <div className={`text-xs px-2 py-1 rounded ${
             isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
           }`}>
-            Live
+            {activeTab.toUpperCase()}
           </div>
         </div>
       </div>
 
-      {/* Content Area */}
       {!windowState.isMinimized && (
-        <div className="h-full p-2">
-          <iframe
-            ref={iframeRef}
-            className={`w-full h-full border rounded ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}
-            sandbox="allow-scripts allow-same-origin"
-          />
-        </div>
+        <>
+          {/* Tab Navigation */}
+          <div className={`flex border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+            {["html", "css", "js"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as "html" | "css" | "js")}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                  activeTab === tab 
+                    ? "border-blue-500 text-blue-600" 
+                    : isDarkMode 
+                      ? "border-transparent text-gray-400 hover:text-gray-200" 
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <span className="flex items-center space-x-1">
+                  <span>{tab.toUpperCase()}</span>
+                  <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                    .{tab}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+
+                    {/* Editor */}
+          <div className="flex-1 relative">
+            <Editor
+              height="calc(100vh - 300px)"
+              language={getLanguage()}
+              value={getCurrentCode()}
+              theme={isDarkMode ? "vs-dark" : "light"}
+              onChange={handleChange}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                automaticLayout: true,
+                fontFamily: "'Fira Code', 'Monaco', 'Menlo', monospace",
+                lineNumbers: "on",
+                roundedSelection: false,
+                scrollBeyondLastLine: false,
+                renderLineHighlight: "line",
+                readOnly: false,
+                domReadOnly: false,
+                contextmenu: true,
+                selectOnLineNumbers: true
+              }}
+            />
+          </div>
+        </>
       )}
       
       {windowState.isMinimized && (
         <div className={`flex items-center justify-center h-full ${
           isDarkMode ? 'text-gray-400' : 'text-gray-500'
         }`}>
-          <span className="text-sm">Preview minimized</span>
+          <span className="text-sm">Editor minimized - {activeTab.toUpperCase()}</span>
         </div>
       )}
     </div>
   );
 };
 
-export default LivePreview;
+export default CodeEditor;
